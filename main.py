@@ -29,11 +29,23 @@ def _async_worker_task(
     lock,
     seed: int
 ) -> tuple[int, Particle, list[np.ndarray]]:
+    """
+    Executes the PSO optimization process for a single particle in an asynchronous worker.
+    It manages the particle's state, safely synchronizes the global best (gbest) 
+    across concurrent processes using a lock, and logs its individual trajectory.
+    """
     
     np.random.seed(seed)
 
     my_trajectory = [particle.position.copy()]
     
+    """
+    Main optimization loop:
+    1. Evaluate current fitness and update the personal best.
+    2. Enter a thread-safe block (lock) to check and update the shared global best.
+    3. Calculate the new velocity, apply boundary clipping, and move the particle.
+    4. Record the snapshot of the new position to the local trajectory array.
+    """
     for _ in range(max_iter):
         particle.fitness_value = float(obj_func(particle.position))
         particle.update_personal_best()
@@ -59,6 +71,12 @@ def _async_worker_task(
 
 
 def main() -> None:
+    """
+    Main entry point for the Asynchronous Parallel PSO.
+    Configures the algorithm parameters, initializes shared memory for IPC (Inter-Process Communication),
+    distributes the workload across multiple CPU cores, and reconstructs the results
+    for accurate chronological visualization.
+    """
     target_function = rastrigin_function
     func_title = r"Rastrigin Function (Async Parallel PSO)"
     search_bounds = (-5.12, 5.12)
