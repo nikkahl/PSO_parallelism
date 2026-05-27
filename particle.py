@@ -1,28 +1,28 @@
+"""Particle state for legacy PSO implementations."""
+
+from __future__ import annotations
+
 import numpy as np
 
 
 class Particle:
-    def __init__(self, num_dimensions: int, bounds: tuple):
-        # Ініціалізуємо випадкову позицію в межах bounds (наприклад, від -10 до 10)
-        min_bound, max_bound = bounds
-        self.position = np.random.uniform(min_bound, max_bound, num_dimensions)
+    """A particle used by older PSO demos."""
 
-        # Ініціалізуємо випадкову початкову швидкість
+    def __init__(self, num_dimensions: int, bounds: tuple[float, float]):
+        low, high = bounds
+        self.position = np.random.uniform(low, high, num_dimensions)
         self.velocity = np.random.uniform(-1, 1, num_dimensions)
 
-        # Пам'ять частинки (персональний рекорд)
         self.p_best_position = self.position.copy()
-        self.p_best_value = float('inf')  # Шукаємо мінімум, тому старт з нескінченності
+        self.p_best_value = float("inf")
+        self.fitness_value = float("inf")
 
-        # Поточне значення функції (фітнес)
-        self.fitness_value = float('inf')
+    def update_position(self) -> None:
+        """Update the position using the current velocity."""
+        self.position = self.position + self.velocity
 
-    def update_position(self):
-        """Оновлює координати частинки на основі її швидкості."""
-        self.position += self.velocity
-
-    def update_personal_best(self):
-        """Оновлює персональний рекорд, якщо нова позиція краща."""
+    def update_personal_best(self) -> None:
+        """Update the personal best based on the current fitness value."""
         if self.fitness_value < self.p_best_value:
-            self.p_best_value = self.fitness_value
+            self.p_best_value = float(self.fitness_value)
             self.p_best_position = self.position.copy()
