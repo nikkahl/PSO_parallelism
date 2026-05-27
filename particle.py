@@ -1,9 +1,7 @@
 """Particle state for legacy PSO implementations."""
 
 from __future__ import annotations
-
 import numpy as np
-
 
 class Particle:
     """A particle used by older PSO demos."""
