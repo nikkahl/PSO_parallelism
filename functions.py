@@ -20,3 +20,6 @@ def rastrigin_function(x: float | np.ndarray) -> float:
     arr = np.asarray(x, dtype=float)
     A = 10.0
     return float(A * len(arr) + np.sum(arr**2 - A * np.cos(2 * np.pi * arr)))
+
+def basic_fucntion() -> float:
+    pass 

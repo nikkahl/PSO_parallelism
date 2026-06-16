@@ -1,11 +1,7 @@
-"""Legacy PSO implementation (kept for older demos)."""
-
+"""Legacy PSO implementation"""
 from __future__ import annotations
-
 import numpy as np
-
 from particle import Particle
-
 
 class PSO:
     """A classical PSO engine for the legacy `Particle` class."""

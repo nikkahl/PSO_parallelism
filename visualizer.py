@@ -1,6 +1,7 @@
 """
 visualizer.py
-Handles 2D and 3D rendering and animation of the swarm trajectory.
+Handles 2D and 3D rendering of the swarm trajectory, 
+as well as static academic convergence plots.
 Strict Academic Style with Agent Path Legend.
 """
 import numpy as np
@@ -20,8 +21,9 @@ class Visualizer:
         out_gif: str = "pso_swarm_2d.gif",
         fps: int = 15,
     ) -> None:
+        
         low, high = bounds
-        fig, ax = plt.subplots(figsize=(10, 8))  # Трохи ширше для легенди
+        fig, ax = plt.subplots(figsize=(10, 8))
         
         ax.set_facecolor('white') 
         ax.grid(True, linestyle='-', color='lightgrey', zorder=0)
@@ -93,7 +95,7 @@ class Visualizer:
         from mpl_toolkits.mplot3d import Axes3D
         low, high = bounds
 
-        fig = plt.figure(figsize=(12, 8)) # Трохи ширше для легенди
+        fig = plt.figure(figsize=(12, 8))
         ax = fig.add_subplot(111, projection='3d')
         ax.view_init(elev=35, azim=45)
         
@@ -129,11 +131,9 @@ class Visualizer:
         num_particles = trajectory[0].shape[0]
         cmap = plt.get_cmap('tab20')
         
-        # Лінії та точки (Без помилок з linestyle)
         trails = [ax.plot([], [], [], c=cmap(i % 20), alpha=0.7, linewidth=1.5, label=f"Path Agent {i+1}", zorder=5)[0] for i in range(num_particles)]
         scat_points = [ax.plot([], [], [], marker='o', c='black', markersize=6, ls='', label="Current Position" if _ == 0 else "")[0] for _ in range(num_particles)]
         
-        # Легенда винесена праворуч
         ax.legend(loc="center left", bbox_to_anchor=(1.05, 0.5), fontsize=8, ncol=2, facecolor='white', edgecolor='lightgrey', framealpha=1.0)
         plt.tight_layout()
 
@@ -153,7 +153,7 @@ class Visualizer:
         def update(frame_number: int):
             target_idx = frame_indices[frame_number]
             pos_data = trajectory[target_idx]
-            z_data = np.array([obj_func(p) for p in pos_data])
+            z_data = np.array([obj_func(p) for p in pos_data]) # ВИПРАВЛЕНО
             
             for i in range(num_particles):
                 scat_points[i].set_data([pos_data[i, 0]], [pos_data[i, 1]])
@@ -177,3 +177,26 @@ class Visualizer:
         print(f"[3D] Saving swarm animation to {out_gif}...")
         ani.save(out_gif, writer=animation.PillowWriter(fps=fps))
         plt.close(fig)
+
+    @staticmethod
+    def plot_convergence(history, func_name, out_file="convergence_curve.png"):
+        """будує графік збіжності"""
+        fig, ax = plt.subplots(figsize=(10, 6))
+        ax.plot(np.arange(len(history)), history, color='royalblue', linewidth=2.5)
+        ax.set_yscale('log')
+        ax.set_title(f"Convergence: {func_name}")
+        ax.set_xlabel("Iterations")
+        ax.set_ylabel("global best fitness (Log)")
+        ax.grid(True, linestyle='--')
+        fig.savefig(out_file, dpi=300)
+        plt.close(fig)
+
+    @staticmethod
+    def print_experiment_table(results: list[dict]):
+        """таблиця в терміналі"""
+        print(f"\n{'='*65}")
+        print(f"{'Інтервал':<10} | {'сер. фітнес':<15} | {'Std Dev':<10} | {'Сер. час (с)':<10}")
+        print("-" * 65)
+        for res in results:
+            print(f"{res['interval']:<10} | {res['mean_score']:<15.6f} | {res['std_dev']:<10.4f} | {res['mean_time']:<10.4f}")
+        print("=" * 65 + "\n")
