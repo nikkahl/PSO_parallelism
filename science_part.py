@@ -1,14 +1,12 @@
-"""
-PSO Scientific Experimentation & Statistical Benchmark Suite.
-"""
 import logging
 import multiprocessing as mp
 import numpy as np
 import csv
+import os
 from typing import Dict, List, Any
-from functions import rastrigin_function
-from classic_pso import classic_pso  
-from optimizer_island import run_island_pso  
+from src.functions import rastrigin_function
+from src.optimizers.classic_pso import classic_pso
+from src.optimizers.optimizer_island import run_island_pso
 
 logging.basicConfig(level=logging.INFO, format='[%(asctime)s][SCIENCE] %(message)s')
 logger = logging.getLogger(__name__)
@@ -19,14 +17,16 @@ class PSOScienceRunner:
         self.target_func = rastrigin_function
         self.dimensions = 20
         self.max_iter = 200
-        self.n_runs = 10  # кількість запусків 
-        self.csv_file = "pso_experiments_raw.csv"
-        self.report_file = "pso_statistical_analysis.txt"
+        self.n_runs = 10  
+        
+        os.makedirs("results/data", exist_ok=True)
+        
+        self.csv_file = "results/data/pso_experiments_raw.csv"
+        self.report_file = "results/data/pso_statistical_summary.csv"        
         
         self._init_storage()
 
     def _init_storage(self) -> None:
-        """Створює структуру CSV файлу з базовими заголовками."""
         with open(self.csv_file, mode='w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
             writer.writerow([
@@ -35,13 +35,11 @@ class PSOScienceRunner:
             ])
 
     def log_raw_run(self, arch: str, agents: int, cores: int, interval: Any, run_id: int, score: float, t_exec: float) -> None:
-        """Зберігає результати одного конкретного запуску алгоритму в базу."""
         with open(self.csv_file, mode='a', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
             writer.writerow([arch, agents, cores, interval, run_id, score, t_exec])
 
     def compile_metrics(self, scores: List[float], times: List[float], baseline_time: float = None) -> Dict[str, float]:
-        """Обчислює статистику: мінімум, максимум, середнє, відхилення та прискорення."""
         scores_arr = np.array(scores)
         times_arr = np.array(times)
         mean_time = float(np.mean(times_arr))        
@@ -57,9 +55,6 @@ class PSOScienceRunner:
         }
 
     def execute_macro_loop(self) -> None:
-        """Головний цикл: тестує Classic PSO, потім Island PSO і генерує звіт."""
-        logger.info("Старт масштабного наукового тестування алгоритмів PSO...")
-        
         classic_experiments_summary = []
         island_experiments_summary = []
         baseline_reference_time = None
@@ -68,7 +63,7 @@ class PSOScienceRunner:
         agent_grid_classic = [30, 60, 100, 120]
         
         for n_agents in agent_grid_classic:
-            logger.info(f"Тестування PSO: розмір {n_agents} частинок")
+            logger.info(f"тестування PSO: розмір {n_agents} частинок")
             scores, times = [], []
             
             for run in range(self.n_runs):
@@ -85,7 +80,6 @@ class PSOScienceRunner:
             stats = self.compile_metrics(scores, times)
             classic_experiments_summary.append({"agents": n_agents, "stats": stats})
             
-            # Запам'ятовуємо час для 120 агентів як базу для розрахунку прискорення
             if n_agents == 120:
                 baseline_reference_time = stats["mean_time"]
 
@@ -118,28 +112,31 @@ class PSOScienceRunner:
                 })
 
         self.write_final_report(classic_experiments_summary, island_experiments_summary, fixed_total_particles)
-        logger.info(f"Наукові експерименти завершено! Дані збережено: '{self.csv_file}', звіт: '{self.report_file}'")
-
+        logger.info(f"дані збережено в: '{self.csv_file}', звіт: '{self.report_file}'")
+    
     def write_final_report(self, classic_data: List[Dict], island_data: List[Dict], fixed_n: int) -> None:
-        """Формує читабельний текстовий звіт з таблицями."""
-        with open(self.report_file, 'w', encoding='utf-8') as f:
-            f.write("ТАБЛИЦЯ 1. Залежність точності та часу Classic Serial PSO від розміру рою\n")
-            f.write(f"{'-'*85}\n")
-            f.write(f"{'К-сть агентів':<15} | {'Найкращий (Min)':<16} | {'Середній (Mean)':<16} | {'СКО (Std Dev)':<12} | {'Час T (сек)':<12}\n")
-            f.write(f"{'-'*85}\n")
+        with open(self.report_file, mode='w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                "Algorithm_Type", "Configuration", "Migration_Interval", 
+                "Best_Fitness_Min", "Mean_Fitness", "Std_Dev", "Time_Sec", "Speedup"
+            ])
+            
             for item in classic_data:
                 st = item["stats"]
-                f.write(f"{item['agents']:<15} | {st['best']:<16.6e} | {st['mean']:<16.6f} | {st['std_dev']:<12.4f} | {st['mean_time']:<12.4f}\n")
-            f.write(f"{'-'*85}\n\n")
-            
-            f.write(f"ТАБЛИЦЯ 2. Матриця конфігурацій Island Parallel PSO при фіксованому N = {fixed_n}\n")
-            f.write(f"{'-'*98}\n")
-            f.write(f"{'Ядер - островів':<16} | {'Інтервал міграції':<18} | {'середній фітнес':<16} | {'СКО (Std Dev)':<12} | {'Час T (сек)':<12} | {'Прискорення':<10}\n")
-            f.write(f"{'-'*98}\n")
+                writer.writerow([
+                    "Classic Serial", f"{item['agents']} agents", "N/A",
+                    f"{st['best']:.6e}", f"{st['mean']:.6f}", f"{st['std_dev']:.4f}", 
+                    f"{st['mean_time']:.4f}", "1.00"
+                ])
+                
             for item in island_data:
                 st = item["stats"]
-                f.write(f"{item['cores']:<16} | {item['interval']:<18} | {st['mean']:<16.6f}  | {st['std_dev']:<12.5f} | {st['mean_time']:<12.4f} | {st['speedup']:.2f}x\n")
-            f.write(f"{'-'*98}\n\n")
+                writer.writerow([
+                    "Island Parallel", f"{item['cores']} cores", item['interval'],
+                    f"{st['best']:.6e}", f"{st['mean']:.6f}", f"{st['std_dev']:.5f}", 
+                    f"{st['mean_time']:.4f}", f"{st['speedup']:.2f}"
+                ])
 
 if __name__ == "__main__":
     mp.freeze_support()
