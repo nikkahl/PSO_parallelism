@@ -5,11 +5,21 @@ from typing import Callable, Tuple, Any
 from src.particle import Particle
 from src.pso import PSO
 
+"""
+Async parallel PSO using Island Model.
+This module implements a coarse-grained parallel PSO where sub-swarms (islands)
+evolve independently on separate CPU cores and exchange best solutions
+via inter-process communication (Pipes) at specific migration intervals.
+"""
+
 def island_worker(island_id: int, num_particles: int, target_function: Callable, bounds: Tuple[float, float], 
                   dimensions: int, max_iter: int, pipe_in: mp.connection.Connection, 
                   pipe_out: mp.connection.Connection, result_queue: mp.Queue, 
                   migration_interval: int) -> None: 
-        
+    """
+    Independent worker function representing a island. It initializes its own sub-swarm, runs the PSO loop, handles migrations,
+    and puts the final results into a shared queue.
+    """ 
     swarm = [Particle(num_dimensions=dimensions, bounds=bounds) for _ in range(num_particles)]
     island_pso = PSO(w=0.7 , c1=1.5, c2=1.5)
     history = [] 
@@ -38,7 +48,7 @@ def island_worker(island_id: int, num_particles: int, target_function: Callable,
         if step > 0 and step % migration_interval == 0:
             pipe_out.send((island_pso.g_best_value, island_pso.g_best_position.copy()))
             
-            if pipe_in.poll(0.01): 
+            if pipe_in.poll(): 
                 alien_score, alien_pos = pipe_in.recv()
                 
                 if alien_score < island_pso.g_best_value:
@@ -56,6 +66,10 @@ def island_worker(island_id: int, num_particles: int, target_function: Callable,
 
 def run_island_pso(target_func: Callable, bounds: Tuple[float, float], dimensions: int, 
                    num_particles: int, max_iter: int, migration_interval: int = 25) -> Tuple:
+    """
+    Entry point. It allocates CPU cores, splits the population, establishes communication pipes
+    returns: (global_best_value, global_best_position, execution_time, average_history)
+    """
     
     n_islands = max(1, mp.cpu_count() - 1)
     particles_per_island = num_particles // n_islands

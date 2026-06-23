@@ -4,6 +4,7 @@ Handles 2D and 3D rendering of the swarm trajectory,
 as well as static academic convergence plots.
 Strict Academic Style with Agent Path Legend.
 """
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import animation
@@ -18,10 +19,14 @@ class Visualizer:
         func_name: str,
         optimum_pos: tuple[float, float] | None,
         *,
-        out_gif: str = "pso_swarm_2d.gif",
+        out_gif: str = "results/animations/pso_swarm_2d.gif",
         fps: int = 15,
     ) -> None:
         
+        out_dir = os.path.dirname(out_gif)
+        if out_dir:
+            os.makedirs(out_dir, exist_ok=True)
+            
         low, high = bounds
         fig, ax = plt.subplots(figsize=(10, 8))
         
@@ -89,10 +94,15 @@ class Visualizer:
         func_name: str,
         optimum_pos: tuple[float, float] | None,
         *,
-        out_gif: str = "pso_swarm_3d.gif",
+        out_gif: str = "results/animations/pso_swarm_3d.gif",
         fps: int = 15,
     ) -> None:
         from mpl_toolkits.mplot3d import Axes3D
+        
+        out_dir = os.path.dirname(out_gif)
+        if out_dir:
+            os.makedirs(out_dir, exist_ok=True)
+            
         low, high = bounds
 
         fig = plt.figure(figsize=(12, 8))
@@ -153,7 +163,7 @@ class Visualizer:
         def update(frame_number: int):
             target_idx = frame_indices[frame_number]
             pos_data = trajectory[target_idx]
-            z_data = np.array([obj_func(p) for p in pos_data]) # ВИПРАВЛЕНО
+            z_data = np.array([obj_func(p) for p in pos_data]) 
             
             for i in range(num_particles):
                 scat_points[i].set_data([pos_data[i, 0]], [pos_data[i, 1]])
@@ -179,14 +189,18 @@ class Visualizer:
         plt.close(fig)
 
     @staticmethod
-    def plot_convergence(history, func_name, out_file="convergence_curve.png"):
+    def plot_convergence(history, func_name, out_file="results/plots/convergence_curve.png"):
         """будує графік збіжності"""
+        out_dir = os.path.dirname(out_file)
+        if out_dir:
+            os.makedirs(out_dir, exist_ok=True)
+            
         fig, ax = plt.subplots(figsize=(10, 6))
         ax.plot(np.arange(len(history)), history, color='royalblue', linewidth=2.5)
         ax.set_yscale('log')
         ax.set_title(f"Convergence: {func_name}")
         ax.set_xlabel("Iterations")
-        ax.set_ylabel("global best fitness (Log)")
+        ax.set_ylabel("Global best fitness (Log)")
         ax.grid(True, linestyle='--')
         fig.savefig(out_file, dpi=300)
         plt.close(fig)

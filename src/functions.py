@@ -23,3 +23,10 @@ def rastrigin_function(x: float | np.ndarray) -> float:
 
 def basic_fucntion() -> float:
     pass 
+
+def griewank_function(x: np.ndarray) -> float:
+    """..."""
+    arr = np.asarray(x, dtype=float)
+    sum_term = np.sum(arr**2) / 4000.0
+    prod_term = np.prod(np.cos(arr / np.sqrt(np.arange(1, len(arr) + 1))))
+    return float(sum_term - prod_term + 1.0)

@@ -1,0 +1,14 @@
+Algorithm_Type,Configuration,Migration_Interval,Best_Fitness_Min,Mean_Fitness,Std_Dev,Time_Sec,Speedup
+Classic Serial,30 agents,N/A,1.492608e+01,32.042322,7.8055,0.2839,1.00
+Classic Serial,60 agents,N/A,1.697803e+01,23.892180,5.6060,0.5417,1.00
+Classic Serial,100 agents,N/A,1.591934e+01,23.507003,4.9489,0.9205,1.00
+Classic Serial,120 agents,N/A,1.392942e+01,24.874795,8.4079,1.1284,1.00
+Island Parallel,2 cores,10,2.337305e+01,32.148930,9.28974,2.4257,0.47
+Island Parallel,2 cores,25,2.015860e+01,32.295935,6.93355,2.4162,0.47
+Island Parallel,2 cores,100,2.079815e+01,35.053002,7.65417,2.3570,0.48
+Island Parallel,4 cores,10,1.858247e+01,29.420210,6.55280,2.4765,0.46
+Island Parallel,4 cores,25,1.967282e+01,30.374416,6.18561,2.5092,0.45
+Island Parallel,4 cores,100,2.052679e+01,26.853067,5.80703,2.5356,0.45
+Island Parallel,8 cores,10,2.381345e+01,30.835873,5.91303,2.4643,0.46
+Island Parallel,8 cores,25,2.956181e+01,34.766119,2.76192,2.4644,0.46
+Island Parallel,8 cores,100,2.889542e+01,35.618955,4.79317,2.4331,0.46
